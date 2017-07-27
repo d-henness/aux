@@ -167,9 +167,6 @@ else
 
     cp $file-orig $newfile
     sed -i -e "s/$oldbs/$newbs/" $newfile
-    if [ $sym == 'S' ]; then
-      sed -i -e "s/maxbs=$OLDS/maxbs=$NEWS/" $newfile
-    fi
     make_gpu_job.sh -tt ${newfile%????} -pr $exepath/$ver \'$newfile\' -t $wtime
     let i=$i+1
   done
