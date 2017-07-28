@@ -92,7 +92,7 @@ if [ "$alljobs" = true ]; then
       NEWSB=$OLDSB
       NEWPB=$OLDPB
       NEWDB=$OLDDB
-      NEWDF=$OLDFB
+      NEWFB=$OLDFB
     fi
     echo Changing directory to $dir
     cd $dir
