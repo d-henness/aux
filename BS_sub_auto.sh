@@ -6,6 +6,7 @@ nuc=''
 exepath=/home/dhenness/prophet/exe
 ver=dfratomgpu_binarysearch2.x
 alljobs=false
+bottom=false
 wtime=01:00:00
 
 while [ $# -gt 0 ]
@@ -16,6 +17,9 @@ do
     "-a")
        alljobs=true
      ;;
+    "-b")
+      bottom=true
+    ;;
     "-gauss")
        nuc='gauss_'
      ;;
@@ -79,6 +83,17 @@ if [ "$alljobs" = true ]; then
     NEWD=$OLDD
     NEWF=$OLDF
     oldbs=`grep 'nbs' $file | sed -e 's/^.*nbs=//' -e 's/.end//'`
+    if [ "$bottom" = true ]; then
+      oldbottom=`grep 'start' $file | sed -e 's/^.*start=//' -e 's/.end//'`
+      OLDSB=`echo $oldbottom | awk '{print $1}'`
+      OLDPB=`echo $oldbottom | awk '{print $2}'`
+      OLDDB=`echo $oldbottom | awk '{print $4}'`
+      OLDFB=`echo $oldbottom | awk '{print $6}'`
+      NEWSB=$OLDSB
+      NEWPB=$OLDPB
+      NEWDB=$OLDDB
+      NEWDF=$OLDFB
+    fi
     echo Changing directory to $dir
     cd $dir
     rm *.inp
@@ -94,6 +109,15 @@ if [ "$alljobs" = true ]; then
       elif [ $sym == 'F' ] && [ $OLDF -ne 0 ]; then
         let NEWF=$OLDF-$i
       fi
+      if [ $sym == 'S' ] && [ "$bottom" = true ]; then
+        let NEWSB=$OLDSB+$i
+      elif [ $sym == 'P' ] && [ "$bottom" = true ] && [ $OLDP -ne 0 ]; then
+        let NEWPB=$OLDPB+$i
+      elif [ $sym == 'D' ] && [ "$bottom" = true ] && [ $OLDD -ne 0 ]; then
+        let NEWDB=$OLDDB+$i
+      elif [ $sym == 'F' ] && [ "$bottom" = true ] && [ $OLDF -ne 0 ]; then
+        let NEWFB=$OLDFB+$i
+      fi
       newfile=$dir'_'$nuc$NEWS's'$NEWP'p-'$NEWP'p+'$NEWD'd-'$NEWD'd+'$NEWF'f-'$NEWF'f+.inp'
   
       if [ $OLDF -ne 0 ]; then
@@ -105,11 +129,23 @@ if [ "$alljobs" = true ]; then
       else
         newbs=$NEWS' '
       fi
+
+      if [ "$bottom" = true ];then
+        if [ $OLDF -ne 0 ]; then
+          newbottom=$NEWSB' '$NEWPB' '$NEWPB' '$NEWDB' '$NEWDB' '$NEWFB' '$NEWFB' '
+        elif [ $OLDD -ne 0 ]; then
+          newbottom=$NEWSB' '$NEWPB' '$NEWPB' '$NEWDB' '$NEWDB' '
+        elif [ $OLDP -ne 0 ]; then
+          newbottom=$NEWSB' '$NEWPB' '$NEWPB' '
+        else
+          newbottom=$NEWSB' '
+        fi
+      fi
   
       cp $file-orig $newfile
       sed -i -e "s/$oldbs/$newbs/" $newfile
-      if [ $sym == 'S' ]; then
-        sed -i -e "s/maxbs=$OLDS/maxbs=$NEWS/" $newfile
+      if [ "$bottom" = true ];then
+        sed -i -e "s/$oldbottom/$newbottom/" $newfile
       fi
       make_gpu_job.sh -tt ${newfile%????} -pr $exepath/$ver \'$newfile\'
       let i=$i+1
@@ -138,6 +174,17 @@ else
   NEWD=$OLDD
   NEWF=$OLDF
   oldbs=`grep 'nbs' $file | sed -e 's/^.*nbs=//' -e 's/.end//'`
+  if [ "$bottom" = true ]; then
+    oldbottom=`grep 'start' $file | sed -e 's/^.*start=//' -e 's/.end//'`
+    OLDSB=`echo $oldbottom | awk '{print $1}'`
+    OLDPB=`echo $oldbottom | awk '{print $2}'`
+    OLDDB=`echo $oldbottom | awk '{print $4}'`
+    OLDFB=`echo $oldbottom | awk '{print $6}'`
+    NEWSB=$OLDSB
+    NEWPB=$OLDPB
+    NEWDB=$OLDDB
+    NEWFB=$OLDFB
+  fi
   echo Changing directory to $dir
   cd $dir
   rm *.inp
@@ -153,6 +200,15 @@ else
     elif [ $sym == 'F' ] && [ $OLDF -ne 0 ]; then
       let NEWF=$OLDF-$i
     fi
+    if [ $sym == 'S' ] && [ "$bottom" = true ]; then
+      let NEWSB=$OLDSB+$i
+    elif [ $sym == 'P' ] && [ "$bottom" = true ] && [ $OLDP -ne 0 ]; then
+      let NEWPB=$OLDPB+$i
+    elif [ $sym == 'D' ] && [ "$bottom" = true ] && [ $OLDD -ne 0 ]; then
+      let NEWDB=$OLDDB+$i
+    elif [ $sym == 'F' ] && [ "$bottom" = true ] && [ $OLDF -ne 0 ]; then
+      let NEWFB=$OLDFB+$i
+    fi
     newfile=$dir'_'$nuc$NEWS's'$NEWP'p-'$NEWP'p+'$NEWD'd-'$NEWD'd+'$NEWF'f-'$NEWF'f+.inp'
 
     if [ $OLDF -ne 0 ]; then
@@ -164,9 +220,23 @@ else
     else
       newbs=$NEWS' '
     fi
+    if [ "$bottom" = true ];then
+      if [ $OLDF -ne 0 ]; then
+        newbottom=$NEWSB' '$NEWPB' '$NEWPB' '$NEWDB' '$NEWDB' '$NEWFB' '$NEWFB' '
+      elif [ $OLDD -ne 0 ]; then
+        newbottom=$NEWSB' '$NEWPB' '$NEWPB' '$NEWDB' '$NEWDB' '
+      elif [ $OLDP -ne 0 ]; then
+        newbottom=$NEWSB' '$NEWPB' '$NEWPB' '
+      else
+        newbottom=$NEWSB' '
+      fi
+    fi
 
     cp $file-orig $newfile
     sed -i -e "s/$oldbs/$newbs/" $newfile
+    if [ "$bottom" = true ]; then
+      sed -i -e "s/$oldbottom/$newbottom/" $newfile
+    fi
     make_gpu_job.sh -tt ${newfile%????} -pr $exepath/$ver \'$newfile\' -t $wtime
     let i=$i+1
   done
