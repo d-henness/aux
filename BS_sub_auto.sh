@@ -206,6 +206,6 @@ for file in $job; do
   ls *_sub.sh > jobsub.sh
   sed -i 's/^/sbatch /' jobsub.sh
   chmod +x jobsub.sh
-#  ./jobsub.sh
+  ./jobsub.sh
   cd ..
 done
