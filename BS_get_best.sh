@@ -16,9 +16,9 @@ for dir in `ls -d */`; do
       echo entering $dir
       cd $dir
       for file in *.inp; do
-        error=`grep -i 'rela' ${file%????}*out | awk '{print $7}'`
+        error=`grep -i 'rela' ${file%????}*out | tail -1 | awk '{print $7}'`
         comperror=`echo $error | sed -e 's/E/\*10\^/'`
-        testthress=$(bc -l <<< "scale=20; ($tol - $comperror)*10^10 >= 1")
+        testthress=`echo "scale=20; ($tol - $comperror)*10^10 >= 1" | bc -l`
         if [ $testthress -ge 1 ]; then
           cp $file ../best
           cp ${file%????}*out ../best

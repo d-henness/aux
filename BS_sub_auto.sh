@@ -82,6 +82,7 @@ if [ "$alljobs" = true ]; then
     echo Changing directory to $dir
     cd $dir
     rm *.inp
+    rm *.out
     rm *.sh
     i=$low
     while [ $i -le $high ]; do
